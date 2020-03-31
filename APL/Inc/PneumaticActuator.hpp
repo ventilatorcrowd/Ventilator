@@ -67,5 +67,4 @@ protected:
 INLINE FUNCTION DEFINITIONS
 *******************************************************************************/
 
-
 #endif /* PNEUMATICACTUATOR_HPP */
