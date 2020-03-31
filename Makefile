@@ -38,6 +38,9 @@ BUILD_DIR = build
 # C sources
 CPP_SOURCES =  \
 Src/main.cpp \
+ASL/Src/SoftwareTimerBase.cpp \
+ASL/Src/ThreadBase.cpp \
+ASL/Src/ThreadControl.cpp \
 APL/Src/WatchdogTask.cpp \
 APL/Src/test.cpp \
 APL/Src/PneumaticActuator.cpp \
@@ -171,9 +174,9 @@ C_INCLUDES =  \
 
 CPP_INCLUDES = \
 -IASL/Inc \
--IAPL/Inc
+-IAPL/Inc \
+-IASL/ThreadTemplate/Inc 
 
-include ../ThreadTemplate/ThreadTemplate.mk
 include ../Utilities/Utilities.mk
 
 #C_INCLUDES += $(CPP_INCLUDES)
