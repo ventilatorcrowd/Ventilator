@@ -177,8 +177,6 @@ CPP_INCLUDES = \
 -IAPL/Inc \
 -IASL/ThreadTemplate/Inc 
 
-include ../Utilities/Utilities.mk
-
 #C_INCLUDES += $(CPP_INCLUDES)
 
 ERRFLAGS = -Wall -Wformat-nonliteral -Wpointer-arith \
