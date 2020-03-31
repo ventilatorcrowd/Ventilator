@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+*.lst
+*.bin
+*.elf
+*.hex
+*.lnk
+build/VentilatorTestBed.map
