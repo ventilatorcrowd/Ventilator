@@ -38,9 +38,9 @@ BUILD_DIR = build
 # C sources
 CPP_SOURCES =  \
 Src/main.cpp \
-ASL/Src/SoftwareTimerBase.cpp \
-ASL/Src/ThreadBase.cpp \
-ASL/Src/ThreadControl.cpp \
+ASL/ThreadTemplate/Src/SoftwareTimerBase.cpp \
+ASL/ThreadTemplate/Src/ThreadBase.cpp \
+ASL/ThreadTemplate/Src/ThreadControl.cpp \
 APL/Src/WatchdogTask.cpp \
 APL/Src/test.cpp \
 APL/Src/PneumaticActuator.cpp \
