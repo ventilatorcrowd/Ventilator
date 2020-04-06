@@ -105,8 +105,8 @@ void CUserInput::funcMain(void)
     m_channel[1] = calcBufferAvg(&channel[1][0], ARRAY_LEN(channel[0])) / ADC_BIT_COUNT * 100;
     m_channel[2] = calcBufferAvg(&channel[2][0], ARRAY_LEN(channel[0])) / ADC_BIT_COUNT * 100;
 
-    m_pActuator->setSpeed((uint32_t)m_channel);
-    m_pActuator->setAmplitude((uint32_t)m_channel);
+    m_pActuator->setSpeed((uint32_t)m_channel[0]);
+    m_pActuator->setAmplitude((uint32_t)m_channel[1]);
 
     HAL_ADC_Start_DMA(m_pADC, (uint32_t *)m_ADCData, ARRAY_LEN(m_ADCData));
 }
