@@ -66,7 +66,7 @@ protected:
     ADC_HandleTypeDef * m_pADC;
     CPneumaticActuator * m_pActuator;
     float m_channel[CHANNEL_COUNT];
-    uint16_t m_ADCData[BUFFER_DEPTH * CHANNEL_COUNT];
+    uint16_t m_ADCData[BUFFER_DEPTH * CHANNEL_COUNT] __attribute__ ((aligned));
 
 };
 
