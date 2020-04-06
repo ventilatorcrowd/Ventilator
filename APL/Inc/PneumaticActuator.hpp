@@ -52,7 +52,15 @@ public:
     void funcBegin() override;
     void funcMain() override;
     void setSpeed(uint32_t speed);
+    void smallIncrementSpeed(void);
+    void smallDecrementSpeed(void);
+    void largeIncrementSpeed(void);
+    void largeDecrementSpeed(void);
     void setAmplitude(uint32_t amplitude);
+    void smallIncrementAmplitude(void);
+    void smallDecrementAmplitude(void);
+    void largeIncrementAmplitude(void);
+    void largeDecrementAmplitude(void);
 //    bool funcTimeout(void * pMsg) override;
 
 //private:

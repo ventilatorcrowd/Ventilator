@@ -231,6 +231,50 @@ void CPneumaticActuator::funcMain(void)
     m_sineIndex = (m_sineIndex + m_speed) % ARRAY_LEN(sinewave);
 }
 
+/**\brief   Increment the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::smallIncrementSpeed(void)
+{
+    ++m_speed;
+}
+
+/**\brief   Decrement the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::smallDecrementSpeed(void)
+{
+    --m_speed;
+}
+
+/**\brief   Large increment the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::largeIncrementSpeed(void)
+{
+    m_speed += 10;
+}
+
+/**\brief   Large decrement the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::largeDecrementSpeed(void)
+{
+    m_speed -= 10;
+}
+
 /**\brief   Sets the speed at which the sinewave is indexed through.
  *
  * \param   speed   - task frequency multiplier
@@ -251,4 +295,49 @@ void CPneumaticActuator::setSpeed(uint32_t speed)
 void CPneumaticActuator::setAmplitude(uint32_t amplitude)
 {
     m_amplitude = amplitude;
+}
+
+/**\brief   Increment the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::smallIncrementAmplitude(void)
+{
+    ++m_amplitude;
+}
+
+
+/**\brief   Decrement the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::smallDecrementAmplitude(void)
+{
+    --m_amplitude;
+}
+
+/**\brief   Large increment the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::largeIncrementAmplitude(void)
+{
+    m_amplitude += 10;
+}
+
+/**\brief   Large decrement the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::largeDecrementAmplitude(void)
+{
+    m_amplitude -= 10;
 }
