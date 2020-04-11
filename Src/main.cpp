@@ -30,7 +30,9 @@
 #include "WatchdogTask.hpp"
 #include "PneumaticActuator.hpp"
 #include "UserInput.hpp"
-
+#include "ButtonHandler.hpp"
+#include "AnemometerTask.hpp"
+#include "lcd16x2.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -61,6 +63,7 @@ DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi1_tx;
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim12;
 
 UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart3;
@@ -89,6 +92,7 @@ static void MX_UART4_Init(void);
 static void MX_IWDG_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_ADC1_Init(void);
+static void MX_TIM12_Init(void);
 void StartDefaultTask(void *argument);
 
 /* USER CODE BEGIN PFP */
@@ -101,11 +105,14 @@ uint32_t blinkyStack[1024];
 uint32_t encoderStack[1024];
 uint32_t PAStack[1024];
 uint32_t UIStack[1024];
+uint32_t debounceStack[1024];
+uint32_t buttonHandlerStack[1024];
+uint32_t AnemometerStack[1024];
 
 uint32_t watchdogStack[1024];
 CWatchdogTask watchdogTask("watchdog"
                         , 100.0f
-                        , osPriorityNormal
+                        , osPriorityNormal7
                         , (void *)watchdogStack
                         , ARRAY_LEN(watchdogStack)
                         , &hiwdg);
@@ -118,7 +125,7 @@ CTestTask blinky("blinky"
         , &watchdogTask);
 
 CPneumaticActuator pneumaticActuator("Pneumatic Actuator"
-        , 100
+        , 25
         , osPriorityNormal
         , (void *)PAStack
         , ARRAY_LEN(PAStack)
@@ -134,15 +141,30 @@ CUserInput UserInput("User Input"
         , &pneumaticActuator
         , &watchdogTask);
 
-void testfunc();
-void testfunc()
-{
 
-    for(;;)
-    {
-//        vTaskSuspend(xTaskGetHandle("testfunc"));
-    }
-}
+CDebounceTask DebounceTask("Debounce Task"
+        , 100
+        , osPriorityNormal
+        , (void *)debounceStack
+        , ARRAY_LEN(debounceStack)
+        , &watchdogTask);
+
+CbuttonHandler ButtonHandler("Button Handle Task"
+        , 100
+        , osPriorityNormal
+        , (void *)buttonHandlerStack
+        , ARRAY_LEN(buttonHandlerStack)
+        , &DebounceTask
+        , &pneumaticActuator
+        , &watchdogTask);
+
+CAnemometerTask AnemometerTask("Anemometer Task"
+        , 1
+        , osPriorityNormal
+        , (void *)AnemometerStack
+        , ARRAY_LEN(AnemometerStack)
+        , &htim12
+        , &watchdogTask);
 
 /* USER CODE END 0 */
 
@@ -184,6 +206,7 @@ int main(void)
   MX_IWDG_Init();
   MX_TIM1_Init();
   MX_ADC1_Init();
+  MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -217,11 +240,16 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-
+  lcd16x2_init(0);
+  lcd16x2_display_on();
+  lcd16x2_puts("Ventilator Test");
   watchdogTask.start();
   blinky.start();
   UserInput.start();
   pneumaticActuator.start();
+  DebounceTask.start();
+  ButtonHandler.start();
+  AnemometerTask.start();
 
   /* USER CODE END RTOS_THREADS */
 
@@ -563,6 +591,62 @@ static void MX_TIM1_Init(void)
 }
 
 /**
+  * @brief TIM12 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM12_Init(void)
+{
+
+  /* USER CODE BEGIN TIM12_Init 0 */
+
+  /* USER CODE END TIM12_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+
+  /* USER CODE BEGIN TIM12_Init 1 */
+
+  /* USER CODE END TIM12_Init 1 */
+  htim12.Instance = TIM12;
+  htim12.Init.Prescaler = 0;
+  htim12.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim12.Init.Period = 1000;
+  htim12.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim12.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim12) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim12, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim12) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OnePulse_Init(&htim12, TIM_OPMODE_SINGLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 300;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM12_Init 2 */
+
+  /* USER CODE END TIM12_Init 2 */
+  HAL_TIM_MspPostInit(&htim12);
+
+}
+
+/**
   * @brief UART4 Initialization Function
   * @param None
   * @retval None
@@ -710,21 +794,54 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOF, LCD_D4_Pin|LCD_D5_Pin|LCD_D6_Pin|LCD_D7_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(US_Trigger_GPIO_Port, US_Trigger_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOG, USB_PowerSwitchOn_Pin|LCD_RS_Pin|LCD_EN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LCD_D4_Pin LCD_D5_Pin LCD_D6_Pin LCD_D7_Pin */
+  GPIO_InitStruct.Pin = LCD_D4_Pin|LCD_D5_Pin|LCD_D6_Pin|LCD_D7_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOF, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : US_Trigger_Pin */
+  GPIO_InitStruct.Pin = US_Trigger_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(US_Trigger_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Button4_Pin Button3_Pin */
+  GPIO_InitStruct.Pin = Button4_Pin|Button3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : Button2_Pin Button1_Pin */
+  GPIO_InitStruct.Pin = Button2_Pin|Button1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LD3_Pin LD2_Pin */
   GPIO_InitStruct.Pin = LD3_Pin|LD2_Pin;
@@ -745,6 +862,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LCD_RS_Pin */
+  GPIO_InitStruct.Pin = LCD_RS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LCD_RS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LCD_EN_Pin */
+  GPIO_InitStruct.Pin = LCD_EN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LCD_EN_GPIO_Port, &GPIO_InitStruct);
 
 }
 
