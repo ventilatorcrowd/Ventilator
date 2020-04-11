@@ -34,10 +34,10 @@ DEFINITIONS
 
 typedef enum
 {
-        CB_OK = 0,
-        CB_FAIL,
-        CB_SIZE_ERROR,
-        CB_POINTER_ERROR
+	CB_OK = 0,
+	CB_FAIL,
+	CB_SIZE_ERROR,
+	CB_POINTER_ERROR
 }CB_Status_t;
 
 /*******************************************************************************
@@ -62,8 +62,8 @@ class CCBBuffer
     typedef struct
     {
         size_t numElements;                                                     /* maximum number of elements */
-        volatile uint32_t start;                                                /* index of oldest element */
-        volatile uint32_t end;                                                  /* index at which to write new element */
+        volatile int32_t start;                                                 /* index of oldest element */
+        volatile int32_t end;                                                   /* index at which to write new element */
     }CBTracker_t;
 
     typedef struct
@@ -85,10 +85,10 @@ public:
     size_t usedSpace(void);
     size_t usedSpaceLinear(void);
     bool flushBuffer(void);
-    size_t write(const dataType_t * const elem, size_t length);
-    size_t write(const dataType_t Data);
-    size_t peak(dataType_t * pData, size_t length);
-    size_t read(dataType_t * elem, size_t length);
+    int32_t write(const dataType_t * const elem, size_t length);
+    int32_t write(const dataType_t Data);
+    int32_t peak(dataType_t * pData, size_t length);
+    int32_t read(dataType_t * elem, size_t length);
     bool readNewest(dataType_t * pData);
 
 private:
@@ -137,12 +137,12 @@ CCBBuffer<dataType_t>::CCBBuffer(dataType_t * pArray, const size_t numElements, 
 template <class dataType_t>
 bool CCBBuffer<dataType_t>::init(dataType_t * pArray, const size_t numElements, const bool useMutex, const bool overwriteOldData)
 {
-    this->m_cb.tracker.numElements = numElements;
-    this->m_cb.tracker.start = 0;
-    this->m_cb.tracker.end = 0;
-    this->m_cb.pArray = pArray;
-    this->m_useMutex = useMutex;
-    this->m_overwriteOldData = overwriteOldData;
+    this.m_cb.tracker.numElements = numElements;
+    this.m_cb.tracker.start = 0;
+    this.m_cb.tracker.end = 0;
+    this.m_cb.pArray = pArray;
+    this.m_useMutex = useMutex;
+    this.m_overwriteOldData = overwriteOldData;
 //        assert(this->isPowerOfTwo(size), "The size must be of ^2 otherwise overflow condition of start/end tracker values will corrupt data in buffer ");
     return flushBuffer();
 }
@@ -156,7 +156,7 @@ bool CCBBuffer<dataType_t>::init(dataType_t * pArray, const size_t numElements, 
 template <class dataType_t>
 bool CCBBuffer<dataType_t>::isFull(void)
 {
-    return (((m_cb.tracker.end + 1) % m_cb.tracker.numElements) == m_cb.tracker.start);
+    return (((m_cb.tracker.end + 1) % (int32_t)m_cb.tracker.numElements) == m_cb.tracker.start);
 }
 
 /**\brief   Checks if the ring buffer is empty
@@ -200,9 +200,9 @@ size_t CCBBuffer<dataType_t>::remainingSpaceLinear(void)
  * and start index. If start is less than end index, then data does from end
  * index to numElements of array and start of array to start index.
  */
-    if (!isFull())
+    if ((m_overwriteOldData) || !isFull())
     {
-        length = ((m_cb.tracker.end < m_cb.tracker.start) ? m_cb.tracker.start : m_cb.tracker.numElements) - m_cb.tracker.end;
+        length = (size_t)(((m_cb.tracker.end < m_cb.tracker.start) ? m_cb.tracker.start : (int32_t)m_cb.tracker.numElements) - m_cb.tracker.end);
     }
 
     return length;
@@ -230,7 +230,7 @@ size_t CCBBuffer<dataType_t>::usedSpace(void)
 template <class dataType_t>
 size_t CCBBuffer<dataType_t>::usedSpaceLinear(void)
 {
-    return ((m_cb.tracker.end < m_cb.tracker.start) ? m_cb.tracker.numElements : m_cb.tracker.end) - m_cb.tracker.start;
+    return (size_t)(((m_cb.tracker.end < m_cb.tracker.start) ? (int32_t)m_cb.tracker.numElements : m_cb.tracker.end) - m_cb.tracker.start);
 }
 
 /**\brief   Resets indexers effectively emptying buffer
@@ -262,9 +262,9 @@ bool CCBBuffer<dataType_t>::flushBuffer(void)
  * \return  number of entries written
  */
 template <class dataType_t>
-size_t CCBBuffer<dataType_t>::write(const dataType_t * const pData, size_t length)
+int32_t CCBBuffer<dataType_t>::write(const dataType_t * const pData, size_t length)
 {
-    size_t writeCnt = 0;
+    int32_t writeCnt = 0;
     size_t toWrite = 0;
 
     if(m_useMutex)
@@ -272,7 +272,7 @@ size_t CCBBuffer<dataType_t>::write(const dataType_t * const pData, size_t lengt
 
     }
 
-    for (writeCnt = 0; (writeCnt < length); writeCnt += toWrite)
+    for (writeCnt = 0; ((writeCnt < (int32_t)length)); writeCnt += toWrite)
     {
         size_t linearLength = remainingSpaceLinear();
         size_t leftToWrite = length - writeCnt;
@@ -286,12 +286,12 @@ size_t CCBBuffer<dataType_t>::write(const dataType_t * const pData, size_t lengt
             }
             else                                                                /* else */
             {
-                m_cb.tracker.start = ((m_cb.tracker.start + toWrite) % m_cb.tracker.numElements);     /* make space by move the start pointer forward the necessary elements */
+                m_cb.tracker.start = ((m_cb.tracker.start + toWrite) % (int32_t)m_cb.tracker.numElements);     /* make space by move the start pointer forward the necessary elements */
             }
         }
 
         memcpy(&m_cb.pArray[m_cb.tracker.end], &pData[writeCnt], toWrite * sizeof(dataType_t));
-        m_cb.tracker.end = ((m_cb.tracker.end + toWrite) % m_cb.tracker.numElements);
+        m_cb.tracker.end = ((m_cb.tracker.end + toWrite) % (int32_t)m_cb.tracker.numElements);
     }
 
     return writeCnt;
@@ -304,7 +304,7 @@ size_t CCBBuffer<dataType_t>::write(const dataType_t * const pData, size_t lengt
  * \return  number of entries written
  */
 template <class dataType_t>
-size_t CCBBuffer<dataType_t>::write(const dataType_t Data)
+int32_t CCBBuffer<dataType_t>::write(const dataType_t Data)
 {
     return write(&Data, 1);
 }
@@ -317,9 +317,9 @@ size_t CCBBuffer<dataType_t>::write(const dataType_t Data)
  * \return  number of elements read
  */
 template <class dataType_t>
-size_t CCBBuffer<dataType_t>::peak(dataType_t * pData, size_t length)
+int32_t CCBBuffer<dataType_t>::peak(dataType_t * pData, size_t length)
 {
-    size_t readCnt = 0;
+    int32_t readCnt = 0;
     size_t toRead = 0;
 
     if(m_useMutex)
@@ -346,9 +346,9 @@ size_t CCBBuffer<dataType_t>::peak(dataType_t * pData, size_t length)
  * \return  number of elements read
  */
 template <class dataType_t>
-size_t CCBBuffer<dataType_t>::read(dataType_t * pData, size_t length)
+int32_t CCBBuffer<dataType_t>::read(dataType_t * pData, size_t length)
 {
-    size_t readCnt = 0;
+    int32_t readCnt = 0;
     size_t toRead = 0;
 
     if(m_useMutex)
@@ -356,13 +356,13 @@ size_t CCBBuffer<dataType_t>::read(dataType_t * pData, size_t length)
 
     }
 
-    for (readCnt = 0; (!isEmpty() && readCnt < length); readCnt =+ toRead)
+    for (readCnt = 0; (!isEmpty() && readCnt < (int32_t)length); readCnt =+ toRead)
     {
         size_t linearLength = usedSpaceLinear();
         size_t leftToRead = length - readCnt;
         toRead = (leftToRead < linearLength) ? leftToRead : linearLength;
         memcpy(&pData[readCnt], &m_cb.pArray[m_cb.tracker.start], toRead * sizeof(dataType_t));
-        m_cb.tracker.start = ((m_cb.tracker.start + toRead) % m_cb.tracker.numElements);
+        m_cb.tracker.start = ((m_cb.tracker.start + toRead) % (int32_t)m_cb.tracker.numElements);
     }
 
     return readCnt;
