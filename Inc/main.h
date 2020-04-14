@@ -76,8 +76,8 @@ void Error_Handler(void);
 #define RMII_RXD0_GPIO_Port GPIOC
 #define RMII_RXD1_Pin GPIO_PIN_5
 #define RMII_RXD1_GPIO_Port GPIOC
-#define LCD_D4_Pin GPIO_PIN_12
-#define LCD_D4_GPIO_Port GPIOF
+#define TFT_DC_Pin GPIO_PIN_12
+#define TFT_DC_GPIO_Port GPIOF
 #define LCD_D5_Pin GPIO_PIN_13
 #define LCD_D5_GPIO_Port GPIOF
 #define LCD_D6_Pin GPIO_PIN_14
@@ -102,6 +102,10 @@ void Error_Handler(void);
 #define STLK_RX_GPIO_Port GPIOD
 #define STLK_TX_Pin GPIO_PIN_9
 #define STLK_TX_GPIO_Port GPIOD
+#define TFT_CS_Pin GPIO_PIN_14
+#define TFT_CS_GPIO_Port GPIOD
+#define TFT_RESET_Pin GPIO_PIN_15
+#define TFT_RESET_GPIO_Port GPIOD
 #define USB_PowerSwitchOn_Pin GPIO_PIN_6
 #define USB_PowerSwitchOn_GPIO_Port GPIOG
 #define USB_OverCurrent_Pin GPIO_PIN_7
