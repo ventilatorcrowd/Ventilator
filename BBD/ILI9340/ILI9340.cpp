@@ -337,6 +337,34 @@ void CILI9340::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t col
     }
 }
 
+/**\brief   Draws a rectangular image at the desired coordinates.
+ *
+ * \param   x       - Horizontal component
+ * \param   y       - Vertical component
+ * \param   w       - rectangle width
+ * \param   h       - rectangle height
+ * \param   pColour - pointer to colour array
+ *
+ * \return  true if exceeds boundary or false if not
+ */
+void CILI9340::drawImage(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t * pColour, size_t length)
+{
+    if (boundaryCheck(x,y)) return;
+    if (((x + w) - 1) >= m_width)  w = m_width - x;
+    if (((y + h) - 1) >= m_height) h = m_height - y;
+    setScreenLocation(x, y, (x + w) -1, (y + h) - 1);
+
+    uint32_t pixelIndex = 0;
+    for (y = h; y > 0; y--)
+    {
+        for (x = w; x > 0; x--)
+        {
+            uint16_t pixel = __builtin_bswap16(pColour[pixelIndex]);
+            writeData((uint8_t *)&pixel, 2);
+            ++pixelIndex;
+        }
+    }
+}
 /**\brief   Converts independent red/green/blue values to a single colour value.
  *
  * \param   red     - red value
