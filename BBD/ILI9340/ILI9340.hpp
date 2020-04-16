@@ -133,6 +133,14 @@ DEFINITIONS
 TYPES
 *******************************************************************************/
 
+struct charStruct_t
+{
+    uint32_t byteCount;
+    uint32_t horizontal;
+    uint32_t vertical;
+    uint8_t const * pCharTable;
+};
+
 /*******************************************************************************
 GLOBAL VARIABLES
 *******************************************************************************/
@@ -162,6 +170,13 @@ class CILI9340
   void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t colour);
   void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,uint16_t colour);
   void drawImage(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t * pColour, size_t length);
+  int putc(char value);
+  int puts(char const * const pString);
+  int putsN(uint8_t const * const pString, int length);
+  void setTextLocation(uint32_t x, uint32_t y);
+  void setFont(unsigned char const * font);
+  void setTextColour(uint32_t colour);
+  void drawCharacter(uint32_t x, uint32_t y, int c);
   void setRotation(uint8_t rotation);
   void invertDisplay(bool invert);
   void clearScreen(int16_t colour = 0x0000);
@@ -188,11 +203,20 @@ private:
     uint16_t m_Reset_Pin;
     uint32_t m_height;
     uint32_t m_width;
+    unsigned int char_xStart;
+    unsigned int char_yStart;
+    unsigned int char_x;
+    unsigned int char_y;
+    unsigned char const * m_pFont;
+    uint32_t m_fontColour;
+    charStruct_t m_fontData;
 };
 
 /*******************************************************************************
 INLINE FUNCTION DEFINITIONS
 *******************************************************************************/
 
+extern "C" void CILI9340_init(CILI9340 * p);
+extern "C" void CILI9340_drawPixel(CILI9340 * p, int16_t x, int16_t y, uint16_t colour);
 
 #endif /* ILI9340_HPP */

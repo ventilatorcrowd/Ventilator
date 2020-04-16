@@ -16,6 +16,7 @@ INCLUDES
 *******************************************************************************/
 
 #include "ILI9340.hpp"
+#include "string.h"
 
 /*******************************************************************************
 NAMESPACE
@@ -75,6 +76,12 @@ CILI9340::CILI9340(SPI_HandleTypeDef * pSPI
     , m_Reset_Pin(Reset_Pin)
     , m_height(TFT_HEIGHT)
     , m_width(TFT_WIDTH)
+    , char_xStart(0)
+    , char_yStart(0)
+    , char_x(0)
+    , char_y(0)
+    , m_pFont(nullptr)
+    , m_fontColour(BLACK)
 {}
 
 /**\brief   Init function to set the screen up, must be called before use.
@@ -88,6 +95,7 @@ void CILI9340::init(void)
     HWReset();
     chipInit();
     setRotation(0);
+    fillScreen(WHITE);
 }
 
 /**\brief   Sets the area of screen to be written to.
@@ -239,6 +247,8 @@ void CILI9340::writeData(uint8_t * pData, size_t length)
     HAL_GPIO_WritePin(m_pDC_Port, m_DC_Pin, GPIO_PIN_SET);
 
     HAL_GPIO_WritePin(m_pCS_Port, m_CS_Pin, GPIO_PIN_RESET);
+
+//    if(65535 < length)
     HAL_SPI_Transmit(m_pSPI, pData, length, 1);
 
     HAL_GPIO_WritePin(m_pCS_Port, m_CS_Pin, GPIO_PIN_SET);
@@ -365,6 +375,311 @@ void CILI9340::drawImage(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t * 
         }
     }
 }
+
+/**\brief   Put single character out on the display.
+ *
+ * \param   value   - Character to write
+ *
+ * \return  character written
+ */
+int CILI9340::putc(char value)
+{
+    if (value == '\n')
+    {    // new line
+        char_x = char_xStart;
+        char_y = char_y + m_pFont[2];
+        if (char_y >= m_height - m_pFont[2])
+        {
+            char_y = char_yStart;
+        }
+    }
+    else
+    {
+        drawCharacter(char_x, char_y, value);
+    }
+
+    return value;
+}
+
+/**\brief   Put null terminated string out on the display.
+ *
+ * \param   pString - Pointer to the string to write
+ *
+ * \return  number of characters written
+ */
+int CILI9340::puts(char const * const pString)
+{
+    auto charIndex = 0;
+
+    while(charIndex < strlen(pString))
+    {
+        if(pString[charIndex] == '\0')
+        {
+            break;
+        }
+        if (pString[charIndex] == '\n')
+        {    // new line
+            char_x = char_xStart;
+            char_y = char_y + m_pFont[2];
+            if (char_y >= m_height - m_pFont[2])
+            {
+                char_y = char_yStart;
+            }
+        }
+        else
+        {
+            drawCharacter(char_x, char_y, pString[charIndex]);
+        }
+        ++charIndex;
+    }
+
+    return charIndex;
+}
+
+/**\brief   Put null terminated string of defined length out on the display.
+ *
+ * \param   pString - Pointer to the string to write
+ * \param   length  - length of string to write
+ *
+ * \return  number of characters written
+ */
+int CILI9340::putsN(uint8_t const * const pString, int length)
+{
+    auto charIndex = 0;
+
+    while(charIndex < length)
+    {
+        if(pString[charIndex] == '\0')
+        {
+            break;
+        }
+        if (pString[charIndex] == '\n')
+        {    // new line
+            char_x = char_xStart;
+            char_y = char_y + m_pFont[2];
+            if (char_y >= m_height - m_pFont[2])
+            {
+                char_y = char_yStart;
+            }
+        }
+        else
+        {
+            drawCharacter(char_x, char_y, pString[charIndex]);
+        }
+        ++charIndex;
+    }
+
+    return charIndex;
+}
+
+/**\brief   Sets text start location.
+ *
+ * \param   x   - horizontal component
+ * \param   y   - vertical component
+ *
+ * \return  None
+ */
+void CILI9340::setTextLocation(uint32_t x, uint32_t y)
+{
+    char_x = char_xStart = x;
+    char_y = char_yStart = y;
+}
+
+/**\brief   Sets text font.
+ *
+ * \param   pFont   - pointer to text array
+ *
+ * \return  None
+ */
+void CILI9340::setFont(unsigned char const * pFont)
+{
+    m_pFont = pFont;
+    m_fontData.byteCount = m_pFont[0];                    // bytes / char
+    m_fontData.horizontal = m_pFont[1];                       // get horizontal size of font
+    m_fontData.vertical = m_pFont[2];                      // get vertical size of font
+    m_fontData.pCharTable = &m_pFont[4];                       // start of bitmap table
+}
+
+/**\brief   Sets text font colour.
+ *
+ * \param   colour  - text colour
+ *
+ * \return  None
+ */
+void CILI9340::setTextColour(uint32_t colour)
+{
+    m_fontColour = colour;
+}
+
+/**\brief   Creates the bit pattern for the desired character and sends it out
+ *          on the comms bus.
+ *
+ * \param   x   - horizontal component
+ * \param   y   - vertical component
+ * \param   c   - character
+ *
+ * \return  None
+ */
+void CILI9340::drawCharacter(uint32_t x, uint32_t y, int c)
+{
+    unsigned int hor,
+    vert,
+    offset,
+    bpl,
+    j,
+    i,
+    b;
+    unsigned char const * character;
+    unsigned char z,w;
+    uint16_t _background = WHITE;
+    uint16_t _foreground = BLACK;
+
+    #ifdef use_ram
+    unsigned int pixel;
+    unsigned int p;
+    unsigned int dma_count,dma_off;
+    uint16_t *buffer;
+    #endif
+
+    if ((c < 31) || (c > 127)) return;   // test char range
+
+    // read m_pFont parameter from start of array
+    offset = m_pFont[0];                    // bytes / char
+    hor = m_pFont[1];                       // get horizontal size of font
+    vert = m_pFont[2];                      // get vertical size of font
+    bpl = m_pFont[3];                       // bytes per line
+
+    if (char_x + hor > m_width)
+    {
+        char_x = char_xStart;
+        char_y = char_y + vert;
+        if (char_y >= m_height - m_pFont[2])
+        {
+            char_y = char_yStart;
+        }
+    }
+
+    setScreenLocation(char_x, char_y, char_x + hor - 1, char_y + vert - 1);           // setup char box
+
+    #ifdef use_ram
+    pixel = hor * vert;                        // calculate buffer size
+    buffer = (uint16_t *) malloc (2*pixel);    // we need a buffer for the font
+    if(buffer != NULL) {                       // there is memory space -> use dma
+        character = &m_pFont[((c -32) * offset) + 4]; // start of char bitmap
+        w = character[0];                          // width of actual char
+        p = 0;
+        // construct the m_pFont into the buffer
+        for (j=0; j<vert; j++) {            //  vert line
+            for (i=0; i<hor; i++) {         //  horz line
+                z =  character[bpl * i + ((j & 0xF8) >> 3)+1];
+                b = 1 << (j & 0x07);
+                if (( z & b ) == 0x00) {
+                    buffer[p] = _background;
+                } else {
+                    buffer[p] = _foreground;
+                }
+                p++;
+            }
+        }
+        // copy the buffer with DMA SPI to display
+        dma_off = 0;  // offset for DMA transfer
+        DMA_InitStructure.DMA_MemoryBaseAddr  = (uint32_t)  (buffer + dma_off);
+        DMA_InitStructure.DMA_MemoryInc  = DMA_MemoryInc_Enable;
+
+        switch(spi_num){        // decide which SPI is to use
+        case (1):
+        DMA_Init(DMA1_Channel3, &DMA_InitStructure);  // init the DMA
+        // start DMA
+         do {
+            if (pixel > 0X10000) {         // this is a giant m_pFont !
+                dma_count = 0Xffff;
+                pixel = pixel - 0Xffff;
+            } else {
+                dma_count = pixel;
+                pixel = 0;
+            }
+            DMA_SetCurrDataCounter(DMA1_Channel3, dma_count);
+            SPI_I2S_DMACmd(SPI1, SPI_I2S_DMAReq_Tx,ENABLE);
+            DMA_Cmd(DMA1_Channel3, ENABLE);
+            while(DMA_GetCurrDataCounter(DMA1_Channel3) != 0);     // wait for end of transfer
+            DMA_Cmd(DMA1_Channel3, DISABLE);
+        }while(pixel > 0);
+        break;
+
+        case (2):
+        DMA_Init(DMA1_Channel5, &DMA_InitStructure);  // init the DMA
+        // start DMA
+         do {
+            if (pixel > 0X10000) {         // this is a giant m_pFont !
+                dma_count = 0Xffff;
+                pixel = pixel - 0Xffff;
+            } else {
+                dma_count = pixel;
+                pixel = 0;
+            }
+            DMA_SetCurrDataCounter(DMA1_Channel5, dma_count);
+            SPI_I2S_DMACmd(SPI2, SPI_I2S_DMAReq_Tx,ENABLE);
+            DMA_Cmd(DMA1_Channel5, ENABLE);
+            while(DMA_GetCurrDataCounter(DMA1_Channel5) != 0);     // wait for end of transfer
+            DMA_Cmd(DMA1_Channel5, DISABLE);
+        }while(pixel > 0);
+        break;
+
+        case (3):
+        DMA_Init(DMA2_Channel2, &DMA_InitStructure);  // init the DMA
+        // start DMA
+         do {
+            if (pixel > 0X10000) {         // this is a giant m_pFont !
+                dma_count = 0Xffff;
+                pixel = pixel - 0Xffff;
+            } else {
+                dma_count = pixel;
+                pixel = 0;
+            }
+            DMA_SetCurrDataCounter(DMA2_Channel2, dma_count);
+            SPI_I2S_DMACmd(SPI3, SPI_I2S_DMAReq_Tx,ENABLE);
+            DMA_Cmd(DMA2_Channel2, ENABLE);
+            while(DMA_GetCurrDataCounter(DMA2_Channel2) != 0);     // wait for end of transfer
+            DMA_Cmd(DMA2_Channel2, DISABLE);
+        }while(pixel > 0);
+        break;
+
+        }
+        spi_bsy();
+        free ((uint16_t *) buffer);
+        spi_16(0);
+    }
+
+    else{
+        #endif
+
+        character = &m_pFont[(((uint32_t)c -32u) * offset) + 4u]; // start of char bitmap
+        w = character[0];                          // width of actual char
+        for (j = 0; j < vert; j++)
+        {  //  vertical line
+            for (i = 0; i < hor; i++)
+            {   //  horizontal line
+                z =  character[bpl * i + ((j & 0xF8) >> 3) + 1];
+                b = 1u << (j & 0x07);
+
+                writeData((uint8_t *)((( z & b ) == 0x00) ? &_background : &m_fontColour), 2u);
+            }
+        }
+
+    #ifdef use_ram
+    }
+    #endif
+//    setScreenLocation(0, 0, m_width,  m_height);
+    if ((w + 2u) < hor)
+    {                   // x offset to next char
+        char_x += w + 2u;
+    }
+    else
+    {
+        char_x += hor;
+    }
+}
+
 /**\brief   Converts independent red/green/blue values to a single colour value.
  *
  * \param   red     - red value
@@ -398,8 +713,8 @@ void CILI9340::setRotation(uint8_t rotation)
 
         case 1:
             _dta |= BIT_MADCTL_MV;
-          m_width  = TFT_WIDTH;
-          m_height = TFT_HEIGHT;
+          m_width  = TFT_HEIGHT;
+          m_height = TFT_WIDTH;
         break;
 
         case 2:
@@ -432,3 +747,6 @@ void CILI9340::invertDisplay(bool invert)
 {
     writeRegister((invert) ? _CMD_INVON : _CMD_INVOFF);
 }
+
+extern "C" void CILI9340_init(CILI9340 * p) { p->init(); }
+extern "C" void CILI9340_drawPixel(CILI9340 * p, int16_t x, int16_t y, uint16_t colour) { p->drawPixel(x, y, colour); }
