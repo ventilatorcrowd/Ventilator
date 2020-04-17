@@ -512,6 +512,17 @@ void CILI9340::setTextColour(uint32_t colour)
     m_fontColour = colour;
 }
 
+/**\brief   Sets text background colour.
+ *
+ * \param   colour  - text colour
+ *
+ * \return  None
+ */
+void CILI9340::setBackgroundColour(uint32_t colour)
+{
+    m_backgroundColour = colour;
+}
+
 /**\brief   Creates the bit pattern for the desired character and sends it out
  *          on the comms bus.
  *
