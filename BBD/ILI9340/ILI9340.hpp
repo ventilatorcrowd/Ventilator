@@ -150,6 +150,7 @@ class CILI9340
   void drawPixel(int16_t x, int16_t y, uint16_t colour);
   void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t colour);
   void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t colour);
+  void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t colour);
   virtual void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,uint16_t colour);
   void drawImage(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t * pColour, size_t length);
   virtual int putc(char value);

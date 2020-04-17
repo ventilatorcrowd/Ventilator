@@ -279,7 +279,7 @@ bool CILI9340::boundaryCheck(int16_t x, int16_t y)
  */
 void CILI9340::drawPixel(int16_t x, int16_t y, uint16_t colour)
 {
-    fillRect(x, y, x + 1u, y + 1u, colour);
+    fillRect(x, y, 1, 1, colour);
 }
 
 /**\brief   Draws a vertical single pixel width line at the desired coordinates.
@@ -293,7 +293,7 @@ void CILI9340::drawPixel(int16_t x, int16_t y, uint16_t colour)
  */
 void CILI9340::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t colour)
 {
-    fillRect(x, y, x, (y + h) - 1, colour);
+    fillRect(x, y, 1, h, colour);
 }
 
 /**\brief   Draws a horizontal single pixel width line at the desired
@@ -308,8 +308,96 @@ void CILI9340::drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t colour)
  */
 void CILI9340::drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t colour)
 {
-    fillRect(x, y, (x + w) - 1, y, colour);
+    fillRect(x, y, w, 1, colour);
 }
+
+void CILI9340::drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t colour)
+{
+
+    int16_t dx = x1 - x0;
+    int16_t dy = y1 - y0;
+    int16_t dx_sym = (dx > 0) ? 1 : -1;
+    int16_t dy_sym = (dy > 0) ? 1 : -1;
+    int16_t dx_x2 = 0;
+    int16_t dy_x2 = 0;
+    int16_t di = 0;
+
+    if (dx == 0)
+    {        /* vertical line */
+        if (y1 > y0)
+        {
+            drawFastVLine(x0, y0, dy, colour);
+        }
+        else
+        {
+            drawFastVLine(x0, y1, -dy, colour);
+        }
+    }
+    else
+    {
+        if (dy == 0)
+        {        /* horizontal line */
+            if (x1 > x0)
+            {
+                drawFastHLine(x0, y0, dx, colour);
+            }
+            else
+            {
+                drawFastHLine(x1, y1, -dx, colour);
+            }
+            return;
+        }
+        else
+        {
+            dx = dx_sym * dx;
+            dy = dy_sym * dy;
+
+            dx_x2 = dx * 2;
+            dy_x2 = dy * 2;
+
+            if (dx >= dy)
+            {
+                di = dy_x2 - dx;
+                while (x0 != x1)
+                {
+                    drawPixel(x0, y0, colour);
+                    x0 += dx_sym;
+                    if (di < 0)
+                    {
+                        di += dy_x2;
+                    }
+                    else
+                    {
+                        di += dy_x2 - dx_x2;
+                        y0 += dy_sym;
+                    }
+                }
+                drawPixel(x0, y0, colour);
+            }
+            else
+            {
+                di = dx_x2 - dy;
+                while (y0 != y1)
+                {
+                    drawPixel(x0, y0, colour);
+                    y0 += dy_sym;
+                    if (di < 0)
+                    {
+                        di += dx_x2;
+                    }
+                    else
+                    {
+                        di += dx_x2 - dy_x2;
+                        x0 += dx_sym;
+                    }
+                }
+                drawPixel(x0, y0, colour);
+            }
+        }
+    }
+}
+
+
 
 /**\brief   Fills the screen with a single colour
  *
@@ -335,8 +423,14 @@ void CILI9340::fillScreen(uint16_t colour)
 void CILI9340::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t colour)
 {
     if (boundaryCheck(x,y)) return;
-    if (((x + w) - 1) >= m_width)  w = m_width - x;
-    if (((y + h) - 1) >= m_height) h = m_height - y;
+    if (((x + w) - 1) >= m_width)
+    {
+        w = m_width - x;
+    }
+    if (((y + h) - 1) >= m_height)
+    {
+        h = m_height - y;
+    }
     setScreenLocation(x, y, (x + w) -1, (y + h) - 1);
 
     for (y = h; y > 0; y--)
