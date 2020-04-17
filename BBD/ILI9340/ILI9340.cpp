@@ -444,7 +444,7 @@ int CILI9340::puts(char const * const pString)
  *
  * \return  number of characters written
  */
-int CILI9340::putsN(uint8_t const * const pString, int length)
+int CILI9340::putsN(uint8_t const * const pString, size_t length)
 {
     auto charIndex = 0;
 
