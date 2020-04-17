@@ -65,6 +65,8 @@ public:
     virtual void setFont(unsigned char const * font) = 0;
     virtual void setTextColour(uint32_t colour) = 0;
     virtual void setBackgroundColour(uint32_t colour) = 0;
+    virtual void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t colour) = 0;
+    virtual void drawPixel(int16_t x0, int16_t y0, uint16_t colour) = 0;
     virtual int putc(char value) = 0;
     virtual int puts(char const * const pString) = 0;
     virtual int putsN(uint8_t const * const pString, size_t length) = 0;
