@@ -32,7 +32,17 @@
 #include "UserInput.hpp"
 #include "ButtonHandler.hpp"
 #include "AnemometerTask.hpp"
-#include "lcd16x2.h"
+#include "ILI9340.hpp"
+#include "ILI9340_CTranslator.h"
+#include "GUI.h"
+#include "Arial12x12.h"
+#include "Arial24x23.h"
+#include "Arial28x28.h"
+#include "controlWidget.hpp"
+
+//#include "ILI9341_STM32_Driver.h"
+
+//#include "lcd16x2.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -78,6 +88,8 @@ char CBBuffer[256];
 CCBBuffer<char> UARTCB(CBBuffer, ARRAY_LEN(CBBuffer), false, true);
 
 //CTestTask test(1000);
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,15 +113,15 @@ int main(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint32_t blinkyStack[1024];
-uint32_t encoderStack[1024];
-uint32_t PAStack[1024];
-uint32_t UIStack[1024];
-uint32_t debounceStack[1024];
-uint32_t buttonHandlerStack[1024];
-uint32_t AnemometerStack[1024];
+uint32_t blinkyStack[512];
+uint32_t encoderStack[512];
+uint32_t PAStack[512];
+uint32_t UIStack[512];
+uint32_t debounceStack[512];
+uint32_t buttonHandlerStack[512];
+uint32_t AnemometerStack[512];
 
-uint32_t watchdogStack[1024];
+uint32_t watchdogStack[512];
 CWatchdogTask watchdogTask("watchdog"
                         , 100.0f
                         , osPriorityNormal7
@@ -166,6 +178,13 @@ CAnemometerTask AnemometerTask("Anemometer Task"
         , &htim12
         , &watchdogTask);
 
+extern CILI9340 ILI9340;
+
+extern GUI_CONST_STORAGE GUI_BITMAP bmVentilatorCrowdLogo0201;
+
+//CTextbox test(&ILI9340, 0, 0, (TFT_HEIGHT / 2) - 1, (TFT_WIDTH / 2) - 1, BLUE);
+CControlWidget ControlWidget(&ILI9340, 0, 0, TFT_HEIGHT, TFT_WIDTH, BLUE);
+
 /* USER CODE END 0 */
 
 /**
@@ -208,7 +227,7 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
-
+//  GUI_Init();
   /* USER CODE END 2 */
 
   osKernelInitialize();
@@ -240,9 +259,31 @@ int main(void)
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  lcd16x2_init(0);
-  lcd16x2_display_on();
-  lcd16x2_puts("Ventilator Test");
+  ILI9340.init();
+  ILI9340.setRotation(1);
+
+//  test.init();
+//  test.setFont(Arial12x12);
+//  test.setTextColour(WHITE);
+//  test.setText("hello World");
+
+
+  ILI9340.drawImage(0, 55, 320, 129, (uint16_t *)bmVentilatorCrowdLogo0201.pData, 412800u);
+
+  ILI9340.setBackgroundColour(WHITE);
+  ILI9340.setFont(Arial28x28);
+  ILI9340.setTextLocation(50, 0);
+  ILI9340.puts("DEVELOPMENT");
+
+  ILI9340.setFont(Arial12x12);
+  ILI9340.setTextLocation(TFT_WIDTH - 60, TFT_WIDTH - 12);
+  ILI9340.puts("Version: Dev 1.0.0");
+
+  HAL_Delay(2000);
+
+  ILI9340.fillScreen(WHITE);
+
+  ControlWidget.init();
   watchdogTask.start();
   blinky.start();
   UserInput.start();
@@ -488,18 +529,19 @@ static void MX_SPI1_Init(void)
   /* USER CODE END SPI1_Init 1 */
   /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_SLAVE;
+  hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_16BIT;
+  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi1.Init.CRCPolynomial = 7;
   hspi1.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+  hspi1.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
   if (HAL_SPI_Init(&hspi1) != HAL_OK)
   {
     Error_Handler();
@@ -611,7 +653,7 @@ static void MX_TIM12_Init(void)
   htim12.Instance = TIM12;
   htim12.Init.Prescaler = 0;
   htim12.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim12.Init.Period = 1000;
+  htim12.Init.Period = 65535;
   htim12.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim12.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim12) != HAL_OK)
@@ -632,7 +674,7 @@ static void MX_TIM12_Init(void)
     Error_Handler();
   }
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 300;
+  sConfigOC.Pulse = 10000;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   if (HAL_TIM_PWM_ConfigChannel(&htim12, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
@@ -800,13 +842,16 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOF, LCD_D4_Pin|LCD_D5_Pin|LCD_D6_Pin|LCD_D7_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOF, TFT_DC_Pin|LCD_D5_Pin|LCD_D6_Pin|LCD_D7_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(US_Trigger_GPIO_Port, US_Trigger_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOD, TFT_CS_Pin|TFT_RESET_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOG, USB_PowerSwitchOn_Pin|LCD_RS_Pin|LCD_EN_Pin, GPIO_PIN_RESET);
@@ -817,8 +862,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LCD_D4_Pin LCD_D5_Pin LCD_D6_Pin LCD_D7_Pin */
-  GPIO_InitStruct.Pin = LCD_D4_Pin|LCD_D5_Pin|LCD_D6_Pin|LCD_D7_Pin;
+  /*Configure GPIO pin : TFT_DC_Pin */
+  GPIO_InitStruct.Pin = TFT_DC_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(TFT_DC_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LCD_D5_Pin LCD_D6_Pin LCD_D7_Pin */
+  GPIO_InitStruct.Pin = LCD_D5_Pin|LCD_D6_Pin|LCD_D7_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -849,6 +901,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : TFT_CS_Pin TFT_RESET_Pin */
+  GPIO_InitStruct.Pin = TFT_CS_Pin|TFT_RESET_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
   GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
