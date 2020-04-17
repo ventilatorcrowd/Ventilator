@@ -532,8 +532,6 @@ void CILI9340::drawCharacter(uint32_t x, uint32_t y, int c)
     b;
     unsigned char const * character;
     unsigned char z,w;
-    uint16_t _background = WHITE;
-    uint16_t _foreground = BLACK;
 
     #ifdef use_ram
     unsigned int pixel;
