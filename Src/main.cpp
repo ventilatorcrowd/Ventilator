@@ -126,6 +126,9 @@ CWatchdogTask watchdogTask("watchdog"
                         , ARRAY_LEN(watchdogStack)
                         , &hiwdg);
 
+extern CILI9340 ILI9340;
+CControlWidget ControlWidget(&ILI9340, 0, 0, TFT_HEIGHT, TFT_WIDTH, BLUE);
+
 CTestTask blinky("blinky"
         , 1
         , osPriorityNormal
@@ -147,6 +150,7 @@ CUserInput UserInput("User Input"
         , (void *)UIStack
         , ARRAY_LEN(UIStack)
         , &hadc1
+        , &ControlWidget
         , &pneumaticActuator
         , &watchdogTask);
 
@@ -175,12 +179,11 @@ CAnemometerTask AnemometerTask("Anemometer Task"
         , &htim12
         , &watchdogTask);
 
-extern CILI9340 ILI9340;
+
 
 extern GUI_CONST_STORAGE GUI_BITMAP bmVentilatorCrowdLogo0201;
 
-//CTextbox test(&ILI9340, 0, 0, (TFT_HEIGHT / 2) - 1, (TFT_WIDTH / 2) - 1, BLUE);
-CControlWidget ControlWidget(&ILI9340, 0, 0, TFT_HEIGHT, TFT_WIDTH, BLUE);
+
 
 /* USER CODE END 0 */
 
