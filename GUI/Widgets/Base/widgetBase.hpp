@@ -39,25 +39,57 @@ GLOBAL VARIABLES
 NAMESPACE
 *******************************************************************************/
 
-class CWidgetBase
+class CPixel
 {
-    class position_t
-    {
-    public:
-        position_t(uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1)
-            : m_x0(x0)
-            , m_x1(x1)
-            , m_y0(y0)
-            , m_y1(y1)
+public:
+    CPixel(int16_t x0 = 0, int16_t y0 = 0, uint16_t colour = 0)
+    : m_x0(x0)
+    , m_y0(y0)
+    , m_colour(colour)
+{
+
+}
+
+public:
+    uint32_t m_x0;
+    uint32_t m_y0;
+    uint32_t m_colour;
+};
+
+class CPosition
+{
+public:
+    CPosition(uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1)
+        : m_x0(x0)
+        , m_x1(x1)
+        , m_y0(y0)
+        , m_y1(y1)
+{}
+
+public:
+    uint32_t m_x0;
+    uint32_t m_x1;
+    uint32_t m_y0;
+    uint32_t m_y1;
+};
+
+class CLine
+    : public CPosition
+{
+public:
+    CLine(uint32_t x0, uint32_t x1, uint32_t y0, uint32_t y1, uint32_t colour)
+        : CPosition(x0, x1, y0, y1)
+        , m_colour(colour)
+        , m_width(1)
     {}
 
-    public:
-        uint32_t m_x0;
-        uint32_t m_x1;
-        uint32_t m_y0;
-        uint32_t m_y1;
-    };
+public:
+    uint32_t m_colour;
+    uint32_t m_width;
+};
 
+class CWidgetBase
+{
 public:
     CWidgetBase(CDisplay * pDisplay, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, uint32_t backgroundColour)
     : m_pDisplay(pDisplay)
@@ -75,7 +107,7 @@ public:
 
 public:
     CDisplay * m_pDisplay;
-    position_t m_position;
+    CPosition m_position;
     uint32_t m_backgroundColour;
 };
 
