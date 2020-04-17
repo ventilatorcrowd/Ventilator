@@ -342,7 +342,8 @@ void CILI9340::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t col
     {
         for (x = w; x > 0; x--)
         {
-            writeData((uint8_t *)&colour, sizeof(colour));
+            uint16_t pixel = __builtin_bswap16(colour);
+            writeData((uint8_t *)&pixel, 2);
         }
     }
 }
@@ -662,7 +663,8 @@ void CILI9340::drawCharacter(uint32_t x, uint32_t y, int c)
                 z =  character[bpl * i + ((j & 0xF8) >> 3) + 1];
                 b = 1u << (j & 0x07);
 
-                writeData((uint8_t *)((( z & b ) == 0x00) ? &_background : &m_fontColour), 2u);
+                uint16_t pixel = __builtin_bswap16((( z & b ) == 0x00) ? m_backgroundColour : m_fontColour);
+                writeData((uint8_t *)&pixel, 2);
             }
         }
 
