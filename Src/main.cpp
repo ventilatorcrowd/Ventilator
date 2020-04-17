@@ -35,9 +35,6 @@
 #include "ILI9340.hpp"
 #include "ILI9340_CTranslator.h"
 #include "GUI.h"
-#include "Arial12x12.h"
-#include "Arial24x23.h"
-#include "Arial28x28.h"
 #include "controlWidget.hpp"
 
 //#include "ILI9341_STM32_Driver.h"
