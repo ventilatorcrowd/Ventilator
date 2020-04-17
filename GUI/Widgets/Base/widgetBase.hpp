@@ -11,8 +11,8 @@
 *
 *******************************************************************************/
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef BASE_WIDGETBASE_HPP
-#define BASE_WIDGETBASE_HPP
+#ifndef WIDGETBASE_HPP
+#define WIDGETBASE_HPP
 
 /*******************************************************************************
 INCLUDES
@@ -21,6 +21,7 @@ INCLUDES
 #include "Display.hpp"
 #include "stdint.h"
 #include "stdio.h"
+#include "string.h"
 
 /*******************************************************************************
 DEFINITIONS
@@ -117,10 +118,10 @@ public:
     void setText(char const * string)
     {
         m_pDisplay->setFont(m_pFont);
-        m_pDisplay->setTextLocation(m_xStart, m_yStart);
+        m_pDisplay->setTextLocation(m_xCurrent, m_yCurrent);
         m_pDisplay->setBackgroundColour(m_backgroundColour);
 
-        if(0 < m_textLength)
+        if(findStringWidth((char const *)m_text) != findStringWidth(string))
         {
             // write text in background colour in case new text is smaller
             m_pDisplay->setTextColour(m_backgroundColour);
@@ -128,8 +129,8 @@ public:
         }
 
         m_textLength = strlen(strncpy(m_text, string, sizeof(m_text)));
-        m_xStart -= findStringWidth(m_text) / 2;
-        m_pDisplay->setTextLocation(m_xStart, m_yStart);
+        m_xCurrent = m_xStart - (findStringWidth(m_text) / 2);
+        m_pDisplay->setTextLocation(m_xCurrent, m_yCurrent);
         m_pDisplay->setTextColour(m_fontColour);
         m_pDisplay->putsN((uint8_t const *)m_text, m_textLength);
     }
@@ -158,7 +159,7 @@ public:
      *
      * \return  None
      */
-    size_t findStringWidth(char * pStr)
+    size_t findStringWidth(char const * const pStr)
     {
         size_t length = 0;
 
@@ -217,4 +218,4 @@ INLINE FUNCTION DEFINITIONS
 *******************************************************************************/
 
 
-#endif /* BASE_WIDGETBASE_HPP */
+#endif /* WIDGETBASE_HPP */
