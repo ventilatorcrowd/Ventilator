@@ -20,6 +20,7 @@ INCLUDES
 
 #include "stdint.h"
 #include "stm32f7xx_hal.h"
+#include "Display.hpp"
 
 /*******************************************************************************
 DEFINITIONS
@@ -150,6 +151,7 @@ NAMESPACE
 *******************************************************************************/
 
 class CILI9340
+    : public CDisplay
 {
 
  public:
@@ -168,14 +170,15 @@ class CILI9340
   void drawPixel(int16_t x, int16_t y, uint16_t colour);
   void drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t colour);
   void drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t colour);
-  void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,uint16_t colour);
+  virtual void fillRect(int16_t x, int16_t y, int16_t w, int16_t h,uint16_t colour);
   void drawImage(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t * pColour, size_t length);
-  int putc(char value);
-  int puts(char const * const pString);
-  int putsN(uint8_t const * const pString, int length);
+  virtual int putc(char value);
+  virtual int puts(char const * const pString);
+  virtual int putsN(uint8_t const * const pString, size_t length);
   void setTextLocation(uint32_t x, uint32_t y);
   void setFont(unsigned char const * font);
   void setTextColour(uint32_t colour);
+  void setBackgroundColour(uint32_t colour);
   void drawCharacter(uint32_t x, uint32_t y, int c);
   void setRotation(uint8_t rotation);
   void invertDisplay(bool invert);
@@ -209,6 +212,7 @@ private:
     unsigned int char_y;
     unsigned char const * m_pFont;
     uint32_t m_fontColour;
+    uint32_t m_backgroundColour;
     charStruct_t m_fontData;
 };
 
