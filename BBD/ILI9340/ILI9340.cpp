@@ -82,6 +82,7 @@ CILI9340::CILI9340(SPI_HandleTypeDef * pSPI
     , char_y(0)
     , m_pFont(nullptr)
     , m_fontColour(BLACK)
+    , m_backgroundColour(WHITE)
 {}
 
 /**\brief   Init function to set the screen up, must be called before use.
