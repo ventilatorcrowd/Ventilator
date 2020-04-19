@@ -112,11 +112,11 @@ void CUserInput::funcMain(void)
 
     static uint32_t taskCount = 0;
 
-    if(100 < taskCount)
+    if(10 < taskCount)
     {
         char respRate[10] = {0};
-        snprintf(respRate, sizeof(respRate), "%d", (uint32_t)m_channel[0]);
-        m_pOutputDisplay->respRate.m_body.setText(respRate);
+        snprintf(respRate, sizeof(respRate), "%d bpm", (uint32_t)m_channel[0]);
+//        m_pOutputDisplay->respRate.m_body.setText(respRate);
         taskCount = 0;
     }
     ++taskCount;
