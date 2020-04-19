@@ -21,6 +21,9 @@ INCLUDES
 #include "TaskBase.hpp"
 #include "Display.hpp"
 
+#include "controlWidget.hpp"
+#include "GraphWidget.hpp"
+
 /*******************************************************************************
 DEFINITIONS
 *******************************************************************************/
@@ -48,15 +51,22 @@ public:
                   , void * const pStack
                   , const size_t stackSize
                   , CDisplay * pDisplay
+                  , uint32_t height
+                  , uint32_t width
                   , CWatchdogBase * pWatchdog = nullptr);
     ~CDisplayTask(void) = default;
     void funcBegin(void) override;
     void funcMain(void) override;
 
 private:
+    void showSpashScreen(void);
 
 private:
     CDisplay * m_pDisplay;
+    uint32_t m_height;
+    uint32_t m_width;
+    CControlWidget ControlWidget;
+    CGraphWidget GraphWidget;
 };
 
 
