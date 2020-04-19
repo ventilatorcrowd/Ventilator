@@ -2,6 +2,9 @@
 //MikroElektronika 2011 
 //http://www.mikroe.com 
 
+#ifndef ARIAL28X28_H
+#define ARIAL28X28_H
+
 //GLCD FontName : @Arial_Unicode_MS28x28
 //GLCD FontSize : 28 x 28
 
@@ -492,3 +495,4 @@ const unsigned char Arial28x28[] = {
 
 };
 
+#endif /* #ifndef ARIAL28X28_H */
