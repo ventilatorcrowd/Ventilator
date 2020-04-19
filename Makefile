@@ -52,9 +52,11 @@ APL/Src/UserInput.cpp \
 APL/Src/DebounceTask.cpp \
 APL/Src/ButtonHandler.cpp \
 APL/Src/AnemometerTask.cpp \
+APL/Src/DisplayTask.cpp \
 BBD/ILI9340/ILI9340_CTranslator.cpp \
 GUI/Widgets/Base/widgetBase.cpp \
 GUI/Widgets/Control/controlWidget.cpp
+#GUI/Widgets/Graph/graphWidget.cpp
 
 
 # C sources

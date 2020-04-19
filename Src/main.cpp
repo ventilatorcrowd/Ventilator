@@ -32,14 +32,10 @@
 #include "UserInput.hpp"
 #include "ButtonHandler.hpp"
 #include "AnemometerTask.hpp"
+#include "DisplayTask.hpp"
 #include "ILI9340.hpp"
 #include "ILI9340_CTranslator.h"
 #include "GUI.h"
-#include "controlWidget.hpp"
-
-//#include "ILI9341_STM32_Driver.h"
-
-//#include "lcd16x2.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -113,10 +109,11 @@ int main(void);
 uint32_t blinkyStack[512];
 uint32_t encoderStack[512];
 uint32_t PAStack[512];
-uint32_t UIStack[512];
+uint32_t UIStack[2048];
 uint32_t debounceStack[512];
 uint32_t buttonHandlerStack[512];
 uint32_t AnemometerStack[512];
+uint32_t DisplayStack[2048];
 
 uint32_t watchdogStack[512];
 CWatchdogTask watchdogTask("watchdog"
@@ -127,7 +124,6 @@ CWatchdogTask watchdogTask("watchdog"
                         , &hiwdg);
 
 extern CILI9340 ILI9340;
-CControlWidget ControlWidget(&ILI9340, 0, 0, TFT_HEIGHT, TFT_WIDTH, BLUE);
 
 CTestTask blinky("blinky"
         , 1
@@ -150,7 +146,7 @@ CUserInput UserInput("User Input"
         , (void *)UIStack
         , ARRAY_LEN(UIStack)
         , &hadc1
-        , &ControlWidget
+        , nullptr
         , &pneumaticActuator
         , &watchdogTask);
 
@@ -179,11 +175,17 @@ CAnemometerTask AnemometerTask("Anemometer Task"
         , &htim12
         , &watchdogTask);
 
+CDisplayTask DisplayTask("Display Task"
+        , 100
+        , osPriorityNormal
+        , (void *)DisplayStack
+        , ARRAY_LEN(DisplayStack)
+        , &ILI9340
+        , TFT_WIDTH
+        , TFT_HEIGHT
+        , &watchdogTask);
 
-
-extern GUI_CONST_STORAGE GUI_BITMAP bmVentilatorCrowdLogo0201;
-
-
+//CGraphWidget graph(&ILI9340, 0, 0, TFT_HEIGHT, TFT_WIDTH, LIGHTGREY);
 
 /* USER CODE END 0 */
 
@@ -217,7 +219,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_ETH_Init();
+//  MX_ETH_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
   MX_SPI1_Init();
@@ -227,7 +229,7 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM12_Init();
   /* USER CODE BEGIN 2 */
-//  GUI_Init();
+
   /* USER CODE END 2 */
 
   osKernelInitialize();
@@ -262,28 +264,8 @@ int main(void)
   ILI9340.init();
   ILI9340.setRotation(1);
 
-//  test.init();
-//  test.setFont(Arial12x12);
-//  test.setTextColour(WHITE);
-//  test.setText("hello World");
-
-
-  ILI9340.drawImage(0, 55, 320, 129, (uint16_t *)bmVentilatorCrowdLogo0201.pData, 412800u);
-
-  ILI9340.setBackgroundColour(WHITE);
-  ILI9340.setFont(Arial28x28);
-  ILI9340.setTextLocation(50, 0);
-  ILI9340.puts("DEVELOPMENT");
-
-  ILI9340.setFont(Arial12x12);
-  ILI9340.setTextLocation(TFT_WIDTH - 60, TFT_WIDTH - 12);
-  ILI9340.puts("Version: Dev 1.0.0");
-
-  HAL_Delay(2000);
-
-  ILI9340.fillScreen(WHITE);
-
-  ControlWidget.init();
+  DisplayTask.start();
+//  ControlWidget.init();
   watchdogTask.start();
   blinky.start();
   UserInput.start();
