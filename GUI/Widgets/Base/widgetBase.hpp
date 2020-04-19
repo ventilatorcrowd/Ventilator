@@ -98,11 +98,11 @@ public:
 {}
     void init(void)
     {
-        m_pDisplay->fillRect(m_position.m_x0
-                             , m_position.m_y0
-                             , m_position.m_x1
-                             , m_position.m_y1
-                             , m_backgroundColour);
+        m_pDisplay->fillRect(this->m_position.m_x0
+                             , this->m_position.m_y0
+                             , this->m_position.m_x1 - this->m_position.m_x0
+                             , this->m_position.m_y1 - this->m_position.m_y0
+                             , this->m_backgroundColour);
     }
 
 public:
@@ -224,9 +224,9 @@ public:
     : CWidgetBase(pDisplay, x0, y0, x1, y1, backgroundColour)
     , m_header(pDisplay
                 , (x0 + ((x1 - x0) / 2))
-                , (y0 + ((y1 - y0) / 2)) - 50
+                , (y0 + ((y1 - y0) / 2)) - 15
                 , (x0 + ((x1 - x0) / 2))
-                , (y0 + ((y1 - y0) / 2)) - 50
+                , (y0 + ((y1 - y0) / 2)) - 15
                 , nullptr
                 , WHITE
                 , backgroundColour)
