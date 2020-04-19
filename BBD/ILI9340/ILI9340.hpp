@@ -144,7 +144,7 @@ class CILI9340
               , uint16_t Reset_Pin);
     ~CILI9340() = default;
 
-  void init(void);
+  void init(void) override;
   void setScreenLocation(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1);
   void fillScreen(uint16_t colour);
   void drawPixel(int16_t x, int16_t y, uint16_t colour);
