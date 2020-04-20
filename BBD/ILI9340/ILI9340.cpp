@@ -249,8 +249,7 @@ void CILI9340::writeData(uint8_t * pData, size_t length)
 
     HAL_GPIO_WritePin(m_pCS_Port, m_CS_Pin, GPIO_PIN_RESET);
 
-//    if(65535 < length)
-    HAL_SPI_Transmit(m_pSPI, pData, length, 1);
+    HAL_SPI_Transmit(m_pSPI, pData, length, HAL_MAX_DELAY);
 
     HAL_GPIO_WritePin(m_pCS_Port, m_CS_Pin, GPIO_PIN_SET);
 }
@@ -437,9 +436,9 @@ void CILI9340::fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t col
     {
         for (x = w; x > 0; x--)
         {
-            uint16_t pixel = __builtin_bswap16(colour);
-            writeData((uint8_t *)&pixel, 2);
+            scratchPad[x -1] = __builtin_bswap16(colour);
         }
+        writeData((uint8_t *)&scratchPad, w*2);
     }
 }
 
@@ -463,12 +462,12 @@ void CILI9340::drawImage(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t * 
     uint32_t pixelIndex = 0;
     for (y = h; y > 0; y--)
     {
-        for (x = w; x > 0; x--)
+        for (x = 0; w > x; ++x)
         {
-            uint16_t pixel = __builtin_bswap16(pColour[pixelIndex]);
-            writeData((uint8_t *)&pixel, 2);
+            scratchPad[x] = __builtin_bswap16(pColour[pixelIndex]);
             ++pixelIndex;
         }
+        writeData((uint8_t *)&scratchPad, w*2);
     }
 }
 
@@ -767,10 +766,11 @@ void CILI9340::drawCharacter(uint32_t x, uint32_t y, int c)
                 z =  character[bpl * i + ((j & 0xF8) >> 3) + 1];
                 b = 1u << (j & 0x07);
 
-                uint16_t pixel = __builtin_bswap16((( z & b ) == 0x00) ? m_backgroundColour : m_fontColour);
-                writeData((uint8_t *)&pixel, 2);
+                scratchPad[i] = __builtin_bswap16((( z & b ) == 0x00) ? m_backgroundColour : m_fontColour);
             }
+            writeData((uint8_t *)&scratchPad, i*2);
         }
+
 
     #ifdef use_ram
     }

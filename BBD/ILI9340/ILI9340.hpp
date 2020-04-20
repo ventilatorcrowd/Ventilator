@@ -195,6 +195,7 @@ private:
     uint32_t m_fontColour;
     uint32_t m_backgroundColour;
     charStruct_t m_fontData;
+    uint16_t scratchPad[TFT_HEIGHT];
 };
 
 /*******************************************************************************
