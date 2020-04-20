@@ -25,7 +25,7 @@ INCLUDES
 DEFINITIONS
 *******************************************************************************/
 
-#define MAX_LINES (10)
+#define MAX_LINES (5)
 
 /*******************************************************************************
 TYPES
@@ -89,7 +89,7 @@ public:
     {
         if (m_init)
         {
-            uint32_t x = m_yLegend.m_x0;
+            uint32_t x = m_yLegend.m_x0 + 1;
             uint32_t y = m_xLegend.m_y0 - (((m_position.m_y0 - 10) / 100) * y0);
             CPixel lastPoint;
 
@@ -120,15 +120,66 @@ public:
 
     void deleteLine(uint32_t lineID)
     {
-        setLineColour(lineID, m_backgroundColour);
-        m_line[lineID].deleteList();
+        size_t lineLength =  m_line[lineID].countNodes();
+        // read line from dataset
+
+        if(lineLength)
+        {
+            for (uint32_t nodeList = 0; nodeList < lineLength; ++nodeList)
+            {
+                m_line[lineID].popFromFront(&m_pixelLine[nodeList]);
+                m_pixelLine[nodeList].m_colour = m_backgroundColour;
+            }
+
+
+            for (uint32_t nextLine = 0; nextLine < MAX_LINES - 1; ++nextLine)
+            {
+                size_t overlapLineLength =  m_line[(nextLine + lineID + 1) % MAX_LINES].countNodes();
+                // read line from dataset
+                for (uint32_t nodeList = 0; nodeList < overlapLineLength; ++nodeList)
+                {
+                    m_line[(lineID + 1) % MAX_LINES].peakFromNode(nodeList, &m_overlapLine[nodeList]);
+                }
+
+                for (uint32_t nodeList = 0; nodeList < lineLength; ++nodeList)
+                {
+                    for (uint32_t overlapNodeList = 0; overlapNodeList < overlapLineLength; ++overlapNodeList)
+                    {
+                        if((m_pixelLine[nodeList].m_x0 == m_overlapLine[overlapNodeList].m_x0)
+                            && (m_pixelLine[nodeList].m_y0 == m_overlapLine[overlapNodeList].m_y0))
+                        {
+                            m_pixelLine[nodeList].m_colour = m_overlapLine[overlapNodeList].m_colour;
+                        }
+                    }
+                }
+            }
+
+            for (uint32_t nodeList = 0; nodeList < lineLength; ++nodeList)
+            {
+                m_pDisplay->drawPixel(m_pixelLine[nodeList].m_x0, m_pixelLine[nodeList].m_y0, m_pixelLine[nodeList].m_colour);
+            }
+
+        }
+//        setLineColour(lineID, m_backgroundColour);
+
+
+        /* build a replacement line that follows the line to be deleted.
+         * look for overlaps with other lines and set the colour of the pixel
+         * to match the overlapping line
+         */
+
+//        if()
+
+//            m_line[lineID].peakFromNode(activeNodeCount, &lastPoint);
+//        m_line[lineID].deleteList();
     }
 
 public:
     CText m_title;
     CLine m_xLegend;
     CLine m_yLegend;
-
+    CPixel m_pixelLine[320];
+    CPixel m_overlapLine[320];
     uint8_t m_dataTable[MAX_LINES][320 * sizeof(CNode<CPixel>)];
     CLinkedList<CPixel> m_line[MAX_LINES];
 };
