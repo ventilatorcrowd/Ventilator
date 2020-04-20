@@ -537,7 +537,6 @@ inline bool CLinkedList<MyType>::deleteList()
     {
         popFromFront(nullptr);
     }
-
 }
 
 /**\brief   Deletes node at the given nodeID, this is the distance from head.
