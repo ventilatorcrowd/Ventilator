@@ -92,7 +92,7 @@ CDisplayTask::CDisplayTask(char const * const pName
  */
 void CDisplayTask::funcBegin(void)
 {
-    showSpashScreen();
+    showSplashScreen();
     sleepMilliseconds(2000);
     m_pDisplay->fillScreen(WHITE);
 
@@ -162,7 +162,7 @@ void CDisplayTask::funcMain(void)
  *
  * \return  None
  */
-void CDisplayTask::showSpashScreen(void)
+void CDisplayTask::showSplashScreen(void)
 {
     m_pDisplay->drawImage(0, 55, 320, 129, (uint16_t *)bmVentilatorCrowdLogo0201.pData, 412800u);
 

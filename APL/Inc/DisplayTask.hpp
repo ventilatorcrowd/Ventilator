@@ -59,7 +59,7 @@ public:
     void funcMain(void) override;
 
 private:
-    void showSpashScreen(void);
+    void showSplashScreen(void);
 
 private:
     CDisplay * m_pDisplay;
