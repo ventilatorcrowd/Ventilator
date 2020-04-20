@@ -95,6 +95,7 @@ public:
     : m_pDisplay(pDisplay)
     , m_position(x0, x1, y0, y1)
     , m_backgroundColour(backgroundColour)
+    , m_init(false)
 {}
     void init(void)
     {
@@ -103,12 +104,14 @@ public:
                              , this->m_position.m_x1 - this->m_position.m_x0
                              , this->m_position.m_y1 - this->m_position.m_y0
                              , this->m_backgroundColour);
+        m_init = true;
     }
 
 public:
     CDisplay * m_pDisplay;
     CPosition m_position;
     uint32_t m_backgroundColour;
+    bool m_init;
 };
 
 
@@ -135,7 +138,14 @@ public:
         , m_pFont(nullptr)
         , m_fontColour(fontColour)
         , m_backgroundColour(backgroundColour)
-    {}
+    {
+
+    }
+
+    void init(void)
+    {
+        m_init = true;
+    }
 
     void setFont(unsigned char const * pFont)
     {
@@ -149,22 +159,25 @@ public:
 
     void setText(char const * string)
     {
-        m_pDisplay->setFont(m_pFont);
-        m_pDisplay->setTextLocation(m_xCurrent, m_yCurrent);
-        m_pDisplay->setBackgroundColour(m_backgroundColour);
-
-        if(findStringWidth((char const *)m_text) != findStringWidth(string))
+        if(m_init)
         {
-            // write text in background colour in case new text is smaller
-            m_pDisplay->setTextColour(m_backgroundColour);
+            m_pDisplay->setFont(m_pFont);
+            m_pDisplay->setTextLocation(m_xCurrent, m_yCurrent);
+            m_pDisplay->setBackgroundColour(m_backgroundColour);
+
+            if(findStringWidth((char const *)m_text) != findStringWidth(string))
+            {
+                // write text in background colour in case new text is smaller
+                m_pDisplay->setTextColour(m_backgroundColour);
+                m_pDisplay->putsN((uint8_t const *)m_text, m_textLength);
+            }
+
+            m_textLength = strlen(strncpy(m_text, string, sizeof(m_text)));
+            m_xCurrent = m_xStart - (findStringWidth(m_text) / 2);
+            m_pDisplay->setTextLocation(m_xCurrent, m_yCurrent);
+            m_pDisplay->setTextColour(m_fontColour);
             m_pDisplay->putsN((uint8_t const *)m_text, m_textLength);
         }
-
-        m_textLength = strlen(strncpy(m_text, string, sizeof(m_text)));
-        m_xCurrent = m_xStart - (findStringWidth(m_text) / 2);
-        m_pDisplay->setTextLocation(m_xCurrent, m_yCurrent);
-        m_pDisplay->setTextColour(m_fontColour);
-        m_pDisplay->putsN((uint8_t const *)m_text, m_textLength);
     }
 
     /**\brief   Finds character width.
@@ -238,6 +251,13 @@ public:
              , nullptr
              , WHITE
              , backgroundColour)    {}
+
+    void init()
+    {
+        CWidgetBase::init();
+        m_header.init();
+        m_body.init();
+    }
 
 public:
     CText m_header;
