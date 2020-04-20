@@ -20,9 +20,12 @@ INCLUDES
 
 #include "TaskBase.hpp"
 #include "Display.hpp"
+#include "DisplayOutput.hpp"
+#include "ActuatorDisplay.hpp"
 
 #include "controlWidget.hpp"
 #include "GraphWidget.hpp"
+#include "IndicatorWidget.hpp"
 
 /*******************************************************************************
 DEFINITIONS
@@ -43,6 +46,8 @@ NAMESPACE
 
 class CDisplayTask
     : public threadCore::CTaskBase
+    , public CDisplayOutput
+    , public CActuatorDisplay
 {
 public:
     CDisplayTask(char const * const pName
@@ -57,6 +62,8 @@ public:
     ~CDisplayTask(void) = default;
     void funcBegin(void) override;
     void funcMain(void) override;
+    void setRespRateValue(uint32_t value) override;
+    void setPhaseValue(bool phase) override;
 
 private:
     void showSplashScreen(void);
@@ -67,6 +74,12 @@ private:
     uint32_t m_width;
     CControlWidget ControlWidget;
     CGraphWidget GraphWidget;
+    CIndicatorWidget IndicatorWidget;
+    uint32_t m_respiritoryValue;
+    bool m_newRespValue;
+    uint32_t m_phaseValue;
+    bool m_newPhaseValue;
+    bool m_init;
 };
 
 

@@ -82,6 +82,12 @@ CDisplayTask::CDisplayTask(char const * const pName
     , m_width(width)
     , ControlWidget(m_pDisplay, 0, 0, m_width, (m_height / 2) - 1, BLUE)
     , GraphWidget(m_pDisplay, 0, (m_height / 2) + 1, m_width, m_height, LIGHTGREY)
+    , IndicatorWidget(m_pDisplay
+                      , m_width - 10
+                      , (m_height / 2) + 1
+                      , m_width
+                      , (m_height / 2) + 1 + 10
+                      , RED)
 {}
 
 /**\brief   Starts display
@@ -98,7 +104,8 @@ void CDisplayTask::funcBegin(void)
 
     ControlWidget.init();
     GraphWidget.init();
-
+    IndicatorWidget.init();
+    this->m_init = true;
 }
 
 /**\brief   Main routine, controls the images being generated on the display.
@@ -151,9 +158,37 @@ void CDisplayTask::funcMain(void)
             0x5872,0x5ad8,0x5d41,0x5fae,0x621e,0x6491,0x6707,0x697f,
             0x6bfa,0x6e76,0x70f4,0x7374,0x75f5,0x7876,0x7af9,0x7d7c};
 
-    static int32_t i = 0;
-    GraphWidget.addPoint((((float)testData[i]) /65535.0f) * 100.0, RED);
-    i = (i + 1 ) % ARRAY_LEN(testData);
+    static uint32_t i = 0;
+    static uint32_t lineID = 0;
+
+    GraphWidget.addPoint(lineID, (((float)testData[i]) /65535.0f) * (100.0 / (lineID + 1)), RED);
+    if(i > ARRAY_LEN(testData))
+    {
+        i = 0;
+        GraphWidget.setLineColour(lineID, DARKGREY);
+        lineID = (++lineID) % MAX_LINES;
+
+        GraphWidget.deleteLine(lineID);
+    }
+    else
+    {
+        ++i;
+    }
+
+    if(m_newRespValue)
+    {
+        char respRate[10] = {0};
+        snprintf(respRate, sizeof(respRate), "%d bpm", m_respiritoryValue);
+        ControlWidget.respRate.m_body.setText(respRate);
+        m_newRespValue = false;
+    }
+
+    if(m_newPhaseValue)
+    {
+        IndicatorWidget.setColour(m_phaseValue ? GREEN : BLUE);
+        m_newPhaseValue = false;
+    }
+
 }
 
 /**\brief   Shows the start spash screen
@@ -175,3 +210,29 @@ void CDisplayTask::showSplashScreen(void)
     m_pDisplay->setTextLocation(240 - 60, 240 - 12);
     m_pDisplay->puts("Version: Dev 1.0.0");
 }
+
+void CDisplayTask::setRespRateValue(uint32_t value)
+{
+    if(this->m_init)
+    {
+        if(value != m_respiritoryValue)
+        {
+            m_respiritoryValue = value;
+            m_newRespValue = true;
+        }
+    }
+}
+
+void CDisplayTask::setPhaseValue(bool phase)
+{
+    if(this->m_init)
+    {
+        if(phase != m_phaseValue)
+        {
+            m_phaseValue = phase;
+            m_newPhaseValue = true;
+        }
+    }
+}
+
+

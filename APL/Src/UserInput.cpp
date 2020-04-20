@@ -68,12 +68,12 @@ CUserInput::CUserInput(char const * const pName
                      , void * const pStack
                      , const size_t stackSize
                      , ADC_HandleTypeDef * pADC
-                     , CControlWidget * pOutputDisplay
+                     , CDisplayOutput * pDisplayOutput
                      , CPneumaticActuator * pActuator
                      , CWatchdogBase * pWatchdog)
     : threadCore::CTaskBase(pName, freq, priority, pStack, stackSize, pWatchdog)
     , m_pADC(pADC)
-    , m_pOutputDisplay(pOutputDisplay)
+    , m_pDisplayOutput(pDisplayOutput)
     , m_pActuator(pActuator)
 //    , m_channel({0})
 //    , m_ADCData({0})
@@ -114,9 +114,10 @@ void CUserInput::funcMain(void)
 
     if(10 < taskCount)
     {
-        char respRate[10] = {0};
-        snprintf(respRate, sizeof(respRate), "%d bpm", (uint32_t)m_channel[0]);
-//        m_pOutputDisplay->respRate.m_body.setText(respRate);
+        if(m_pDisplayOutput)
+        {
+            m_pDisplayOutput->setRespRateValue((uint32_t)m_channel[0]);
+        }
         taskCount = 0;
     }
     ++taskCount;
