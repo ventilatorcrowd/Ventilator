@@ -86,6 +86,8 @@ public:
         TidalVolume.m_body.setFont(Arial12x12);
         TidalVolume.m_body.setTextColour(WHITE);
         TidalVolume.m_body.setText("0 ml");
+
+        m_init = true;
     }
 
     ~CControlWidget() = default;
