@@ -79,6 +79,7 @@ using node_t = CNode<MyType>;
 public:
     CLinkedList(void * pTable = nullptr, size_t size = 0);
     ~CLinkedList() = default;
+    void init(void * pTable, size_t size);
     int32_t pushToFront(MyType * pData);
     int32_t pushToBack(MyType * pData);
     int32_t pushBefore(node_t * pNextNode, MyType * pData);
@@ -91,6 +92,7 @@ public:
     size_t countNodes(void);
     size_t getMaxNodes(void);
     bool deleteNode(size_t nodeID);
+    bool deleteList(void);
     void * findData(MyType * pData, bool findFirst);
     void * findNode(uint32_t nodeID);
 
@@ -244,6 +246,27 @@ inline CLinkedList<MyType>::CLinkedList(void * pTable, size_t size)
     , m_activeNodes(0)
     , m_pHead(nullptr)
 {
+    for(auto i = 0u; i < m_length; ++i)
+    {
+        m_pTable[i].populateNode(  0
+                                 , (i < (m_length - 1u)) ? &m_pTable[i + 1] : nullptr
+                                 , (i == 0) ? nullptr : &m_pTable[i - 1]);
+    }
+}
+
+/**\brief   Initialises the memory space
+ *
+ * \param   pTable  - pointer to memory space to be used to store link list
+ * \param   size    - byte count of the array
+ *
+ * \return  None
+ */
+template <class MyType>
+inline void CLinkedList<MyType>::init(void * pTable, size_t size)
+{
+    m_pTable = (node_t *)pTable;
+    m_length = size / sizeof(node_t);
+
     for(auto i = 0u; i < m_length; ++i)
     {
         m_pTable[i].populateNode(  0
@@ -499,6 +522,21 @@ template <class MyType>
 inline size_t CLinkedList<MyType>::getMaxNodes(void)
 {
     return m_length;
+}
+
+/**\brief   Deletes list
+ *
+ * \param   None
+ *
+ * \return  LL_SUCCESS on successful allocation else LL_FAIL
+ */
+template <class MyType>
+inline bool CLinkedList<MyType>::deleteList()
+{
+    while (countNodes())
+    {
+        popFromFront(nullptr);
+    }
 }
 
 /**\brief   Deletes node at the given nodeID, this is the distance from head.

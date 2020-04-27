@@ -1,5 +1,5 @@
 /*******************************************************************************
-* File          : SubscriptionTools.hpp
+* File          : SubscribeBase.hpp
 *
 * Description   : 
 *
@@ -11,16 +11,15 @@
 *
 *******************************************************************************/
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef SUBSCRIPTIONTOOLS_HPP
-#define SUBSCRIPTIONTOOLS_HPP
+#ifndef SUBSCRIBEBASE_HPP
+#define SUBSCRIBEBASE_HPP
 
 /******************************************************************************
 INCLUDES
 *******************************************************************************/
 
 #include "LinkedList.hpp"
-#include "stm32F405xx.h"
-#include "stm32f4xx_hal.h"
+#include "stm32f7xx_hal.h"
 #include "freeRTOS.h"
 #include "semphr.h"
 
@@ -46,8 +45,7 @@ CONSTANTS
 NAMESPACE
 *******************************************************************************/
 
-/*
- *  base subscription class, hosts the subscription table and basic tools for
+/*  Base subscription class, hosts the subscription table and basic tools for
  *  registering, finding, and deregistering callbacks to pins
  */
 class CSubscribeBase
@@ -57,20 +55,25 @@ public:
     {
       GPIO_TypeDef * GPIO_port;
       GPIO_InitTypeDef GPIO_InitStruct;
-      callbackFuncPtr_t callback;
-      void * ctx;
+      callbackFuncPtr_t assertCallback;
+      void * assertArg;
+      callbackFuncPtr_t deassertCallback;
+      void * deassertArg;
     } subscription_t;
 
 public:
-    CSubscribeBase(void * m_pSubscriptions, size_t maxEntries);
+    CSubscribeBase(void * m_pSubscriptions, size_t size);
     virtual ~CSubscribeBase(void) = default;
-    bool subscribe(GPIO_TypeDef* GPIO_port, uint16_t GPIO_pin,
-                   uint32_t pull_up_down,
-                   callbackFuncPtr_t callback, void * ctx);
+    bool subscribe(GPIO_TypeDef* GPIO_port, uint16_t GPIO_pin , uint32_t pull_up_down
+                   , callbackFuncPtr_t assertCallback, void * assertArg
+                   , callbackFuncPtr_t deassertCallback, void * deassertArg);
     void unsubscribe(GPIO_TypeDef* GPIO_port, uint16_t GPIO_pin);
-    bool getSubscriptionList(uint32_t tableID, GPIO_TypeDef * GPIO_port, uint16_t * GPIO_pin);
+    bool getSubscriptionList(uint32_t tableID, GPIO_TypeDef ** GPIO_port, uint16_t * GPIO_pin);
     size_t getSubscriptionCount(void);
-    callbackFuncPtr_t getCallback(uint32_t listID);
+    callbackFuncPtr_t getAssertCallback(uint32_t listID);
+    void * getAssertCallbackMsg(uint32_t listID);
+    callbackFuncPtr_t getDeassertCallback(uint32_t listID);
+    void * getDeassertCallbackMsg(uint32_t listID);
 
 private:
     int32_t findActiveSubscription(GPIO_TypeDef* GPIO_port
@@ -84,21 +87,8 @@ private:
     SemaphoreHandle_t xSemaphore;
 };
 
-class CSubscribeEXTI
-    : public CSubscribeBase
-{
-public:
-    CSubscribeEXTI(void * pTable, size_t maxEntries);
-    ~CSubscribeEXTI() = default;
-
-private:
-    void configureGPIO(subscription_t * pSubscription) override;
-    void unconfigureGPIO(subscription_t * pSubscription) override;
-    IRQn_Type getIRQNumber(uint16_t pin);
-};
-
 /*******************************************************************************
 INLINE FUNCTION DEFINITIONS
 *******************************************************************************/
 
-#endif /* SUBSCRIPTIONTOOLS_HPP */
+#endif /* SUBSCRIBEBASE_HPP */

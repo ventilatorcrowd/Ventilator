@@ -198,12 +198,15 @@ CPneumaticActuator::CPneumaticActuator(char const * const pName
                      , void * const pStack
                      , const size_t stackSize
                      , TIM_HandleTypeDef * phtim
+                     , CActuatorDisplay * pActuatorDisplay
                      , CWatchdogBase * pWatchdog)
     : threadCore::CTaskBase(pName, freq, priority, pStack, stackSize, pWatchdog)
     , m_pTimer(phtim)
     , m_sineIndex(0)
     , m_speed(10)
     , m_amplitude(100)
+    , m_breathPhase(true)
+    , m_pActuatorDisplay(pActuatorDisplay)
 {}
 
 /**\brief   Single call function called before main task, starts timer in PWM
@@ -227,8 +230,68 @@ void CPneumaticActuator::funcBegin(void)
  */
 void CPneumaticActuator::funcMain(void)
 {
-    __HAL_TIM_SET_COMPARE(m_pTimer, TIM_CHANNEL_1, ((sinewave[m_sineIndex] * m_amplitude) / 100));
-    m_sineIndex = (m_sineIndex + m_speed) % ARRAY_LEN(sinewave);
+    uint32_t demandedPressure = ((sinewave[(m_breathPhase) ? m_sineIndex : 0] * m_amplitude) / 100);
+    __HAL_TIM_SET_COMPARE(m_pTimer, TIM_CHANNEL_1, demandedPressure);
+
+    /* if incrementing the sine index exceeds the length of the array then
+     * switch to exhalation mode and reset the indexer.
+     */
+    m_sineIndex = m_sineIndex + m_speed;
+    if(ARRAY_LEN(sinewave) < (m_sineIndex + m_speed))
+    {
+        m_sineIndex = 0;
+        m_breathPhase = !m_breathPhase;
+    }
+
+    if(m_pActuatorDisplay)
+    {
+        m_pActuatorDisplay->setPhaseValue(m_breathPhase);
+//        m_pActuatorDisplay->setPressureValue(demandedPressure);
+    }
+}
+
+/**\brief   Increment the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::smallIncrementSpeed(void)
+{
+    ++m_speed;
+}
+
+/**\brief   Decrement the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::smallDecrementSpeed(void)
+{
+    --m_speed;
+}
+
+/**\brief   Large increment the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::largeIncrementSpeed(void)
+{
+    m_speed += 10;
+}
+
+/**\brief   Large decrement the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::largeDecrementSpeed(void)
+{
+    m_speed -= 10;
 }
 
 /**\brief   Sets the speed at which the sinewave is indexed through.
@@ -251,4 +314,49 @@ void CPneumaticActuator::setSpeed(uint32_t speed)
 void CPneumaticActuator::setAmplitude(uint32_t amplitude)
 {
     m_amplitude = amplitude;
+}
+
+/**\brief   Increment the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::smallIncrementAmplitude(void)
+{
+    ++m_amplitude;
+}
+
+
+/**\brief   Decrement the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::smallDecrementAmplitude(void)
+{
+    --m_amplitude;
+}
+
+/**\brief   Large increment the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::largeIncrementAmplitude(void)
+{
+    m_amplitude += 10;
+}
+
+/**\brief   Large decrement the speed at which the sinewave is indexed through.
+ *
+ * \param   None
+ *
+ * \return  None
+ */
+void CPneumaticActuator::largeDecrementAmplitude(void)
+{
+    m_amplitude -= 10;
 }

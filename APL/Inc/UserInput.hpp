@@ -21,6 +21,8 @@ INCLUDES
 #include "TaskBase.hpp"
 #include "stm32f7xx_hal.h"
 #include "PneumaticActuator.hpp"
+#include "DisplayOutput.hpp"
+#include "controlWidget.hpp"
 
 /*******************************************************************************
 DEFINITIONS
@@ -52,6 +54,7 @@ public:
               , void * const pStack = nullptr
               , const size_t stackSize = 0
               , ADC_HandleTypeDef * pADC = nullptr
+              , CDisplayOutput * pDisplayOutput = nullptr
               , CPneumaticActuator * pActuator = nullptr
               , CWatchdogBase * pWatchdog = nullptr);
     ~CUserInput() = default;
@@ -64,9 +67,10 @@ private:
 //private:
 protected:
     ADC_HandleTypeDef * m_pADC;
+    CDisplayOutput * m_pDisplayOutput;
     CPneumaticActuator * m_pActuator;
     float m_channel[CHANNEL_COUNT];
-    uint16_t m_ADCData[BUFFER_DEPTH * CHANNEL_COUNT];
+    uint16_t m_ADCData[BUFFER_DEPTH * CHANNEL_COUNT] __attribute__ ((aligned));
 
 };
 

@@ -29,7 +29,7 @@
             			
             <storageModule moduleId="cdtBuildSystem" version="4.0.0">
                 				
-                <configuration artifactName="${ProjName}" buildProperties="" description="" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225" name="Default" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=" parent="org.eclipse.cdt.build.core.emptycfg">
+                <configuration artifactName="${ProjName}" buildProperties="" description="" id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225" name="Default" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="org.eclipse.cdt.build.core.emptycfg">
                     					
                     <folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.752773250" name="/" resourcePath="">
                         						
@@ -302,34 +302,6 @@
                         </toolChain>
                         					
                     </folderInfo>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1039513393" name="stm32f733xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f733xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1407810024" name="stm32f722xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f722xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1701334244" name="stm32f765xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f765xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.572479282" name="stm32f779xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f779xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.291727727" name="stm32f750xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f750xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.2025734050" name="stm32f746xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f746xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1279272025" name="stm32f745xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f745xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1584074394" name="stm32f769xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f769xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1812287126" name="stm32f777xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f777xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1216242067" name="stm32f723xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f723xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1554713983" name="stm32f756xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f756xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.1037836342" name="stm32f732xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f732xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.552595901" name="stm32f730xx.h" rcbsApplicability="disable" resourcePath="Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f730xx.h" toolsToInvoke=""/>
-                    					
-                    <fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.base.458996225.371314386" name="FreeRTOSConfig_template.h" rcbsApplicability="disable" resourcePath="Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOSConfig_template.h" toolsToInvoke=""/>
                     					
                     <sourceEntries>
                         						

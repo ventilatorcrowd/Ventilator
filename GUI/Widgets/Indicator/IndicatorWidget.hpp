@@ -1,30 +1,28 @@
 /*******************************************************************************
-* File          : GPIODebounceTools.hpp
+* File          : IndicatorWidget.hpp
 *
-* Description   : GPIO debounce tools
+* Description   : 
 *
-* Project       :
+* Project       : 
 *
-* Author        : Simon Gilbert
+* Author        : s.gilbert
 *
-* Created on    : 19 Feb 2020
+* Created on    : 19 Apr 2020
 *
 *******************************************************************************/
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef GPIODEBOUNCETOOLS_HPP
-#define GPIODEBOUNCETOOLS_HPP
+#ifndef INDICATORWIDGET_HPP
+#define INDICATORWIDGET_HPP
 
 /*******************************************************************************
 INCLUDES
 *******************************************************************************/
 
-#include "CircularBuffer.hpp"
+#include "widgetBase.hpp"
 
 /*******************************************************************************
 DEFINITIONS
 *******************************************************************************/
-
-constexpr uint32_t DEBOUNCEWINDOW = 10;
 
 /*******************************************************************************
 TYPES
@@ -38,29 +36,32 @@ GLOBAL VARIABLES
 NAMESPACE
 *******************************************************************************/
 
-class CGPIOData
+class CIndicatorWidget
+    : public CWidgetBase
 {
 public:
-    CGPIOData(void);
-    ~CGPIOData(void) = default;
-    void update(uint32_t newState);
-    uint32_t debounce(void);
-    bool isAsserted(uint32_t button);
-    bool anyAsserted(void);
+    CIndicatorWidget(CDisplay * pDisplay, uint32_t x0, uint32_t y0, uint32_t x1, uint32_t y1, uint32_t backgroundColour)
+        : CWidgetBase(pDisplay, x0, y0, x1, y1, backgroundColour)
+    {
 
-private:
-    uint32_t m_stateArray[DEBOUNCEWINDOW];
-    CCBBuffer<uint32_t> m_stateCB;
-    uint32_t m_state;
+    }
 
+    void setColour(uint32_t colour)
+    {
+        m_pDisplay->fillRect(m_position.m_x0
+                             , m_position.m_y0
+                             , m_position.m_x1 - m_position.m_x0
+                             , m_position.m_y1 - m_position.m_y0
+                             , colour);
+    }
+
+
+public:
 };
 
 /*******************************************************************************
-FUNCTION PROTOTYPES
+INLINE FUNCTION DEFINITIONS
 *******************************************************************************/
 
-/*******************************************************************************
-INLINE FUNCTIONS
-*******************************************************************************/
 
-#endif /* GPIODEBOUNCETOOLS_HPP */
+#endif /* INDICATORWIDGET_HPP */

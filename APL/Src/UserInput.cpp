@@ -68,10 +68,12 @@ CUserInput::CUserInput(char const * const pName
                      , void * const pStack
                      , const size_t stackSize
                      , ADC_HandleTypeDef * pADC
+                     , CDisplayOutput * pDisplayOutput
                      , CPneumaticActuator * pActuator
                      , CWatchdogBase * pWatchdog)
     : threadCore::CTaskBase(pName, freq, priority, pStack, stackSize, pWatchdog)
     , m_pADC(pADC)
+    , m_pDisplayOutput(pDisplayOutput)
     , m_pActuator(pActuator)
 //    , m_channel({0})
 //    , m_ADCData({0})
@@ -105,8 +107,21 @@ void CUserInput::funcMain(void)
     m_channel[1] = calcBufferAvg(&channel[1][0], ARRAY_LEN(channel[0])) / ADC_BIT_COUNT * 100;
     m_channel[2] = calcBufferAvg(&channel[2][0], ARRAY_LEN(channel[0])) / ADC_BIT_COUNT * 100;
 
-    m_pActuator->setSpeed((uint32_t)m_channel);
-    m_pActuator->setAmplitude((uint32_t)m_channel);
+    m_pActuator->setSpeed((uint32_t)m_channel[0]);
+    m_pActuator->setAmplitude((uint32_t)m_channel[1]);
+
+    static uint32_t taskCount = 0;
+
+    if(10 < taskCount)
+    {
+        if(m_pDisplayOutput)
+        {
+            m_pDisplayOutput->setRespRateValue((uint32_t)m_channel[0]);
+        }
+        taskCount = 0;
+    }
+    ++taskCount;
+
 
     HAL_ADC_Start_DMA(m_pADC, (uint32_t *)m_ADCData, ARRAY_LEN(m_ADCData));
 }
